@@ -8,7 +8,7 @@ type ButtonProps = {
 
 const Button = ({ children, onPress }: ButtonProps) => {
   return (
-    <TouchableOpacity style={[style.button]} onPress={onPress}>
+    <TouchableOpacity style={styles.button} onPress={onPress}>
       {children}
     </TouchableOpacity>
   );
@@ -16,7 +16,7 @@ const Button = ({ children, onPress }: ButtonProps) => {
 
 export default Button;
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   button: {
     borderRadius: 100,
     backgroundColor: Colors.orange,
