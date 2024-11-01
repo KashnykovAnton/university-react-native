@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Text,
   View,
@@ -6,12 +7,14 @@ import {
   ImageBackground,
   Alert,
   TouchableOpacity,
+  Keyboard,
+  KeyboardAvoidingView,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import IconButton from "@/components/IconButton";
 import { Colors } from "@/constants/Colors";
-import { useState } from "react";
 
 export const RegistrationScreen = () => {
   const [name, setName] = useState("");
@@ -19,6 +22,8 @@ export const RegistrationScreen = () => {
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
   const [passwordButtonText, setPasswordButtonText] = useState("Показати");
+
+  const navigation: any = useNavigation();
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -33,6 +38,9 @@ export const RegistrationScreen = () => {
   };
 
   const showPassword = () => {
+    if (password.length === 0) {
+      return;
+    }
     setIsPasswordVisible((prev) => !prev);
     passwordButtonText === "Показати" ? setPasswordButtonText("Сховати") : setPasswordButtonText("Показати");
   };
@@ -41,8 +49,8 @@ export const RegistrationScreen = () => {
     Alert.alert("Credentials", `Your email: ${email}\nYour password: ${password}`);
   };
 
-  const onSignUp = () => {
-    Alert.alert("Sign up!");
+  const onSignIn = () => {
+    navigation.navigate("Login");
   };
 
   const handleAddAvatar = () => Alert.alert("Avatar Added");
@@ -54,48 +62,53 @@ export const RegistrationScreen = () => {
     </TouchableOpacity>
   );
   return (
-    <ImageBackground
-      source={require("../assets/images/background.png")}
-      resizeMode="cover"
-      style={styles.backgroundImg}
-    >
-      <View style={styles.formContainer}>
-        <View style={styles.avatar}>
-          <View style={styles.icon}>
-            <IconButton onAdd={handleAddAvatar} onDelete={handleDeleteAvatar} />
-          </View>
-        </View>
-        <Text style={styles.title}>Реєстрація</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ImageBackground
+        source={require("../assets/images/background.png")}
+        resizeMode="cover"
+        style={styles.backgroundImg}
+      >
+        <KeyboardAvoidingView behavior={"padding"} style={styles.formContainer}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View>
+              <View style={styles.avatar}>
+                <View style={styles.icon}>
+                  <IconButton onAdd={handleAddAvatar} onDelete={handleDeleteAvatar} />
+                </View>
+              </View>
+              <Text style={styles.title}>Реєстрація</Text>
 
-        <View style={[styles.innerContainer, styles.inputContainer]}>
-          <Input value={name} autoFocus={true} placeholder="Логін" onTextChange={handleNameChange} />
-          <Input value={email} placeholder="Адреса електронної пошти" onTextChange={handleEmailChange} />
+              <View style={[styles.innerContainer, styles.inputContainer]}>
+                <Input value={name} autoFocus={true} placeholder="Логін" onTextChange={handleNameChange} />
+                <Input value={email} placeholder="Адреса електронної пошти" onTextChange={handleEmailChange} />
+                <Input
+                  value={password}
+                  placeholder="Пароль"
+                  onTextChange={handlePasswordChange}
+                  secureTextEntry={isPasswordVisible}
+                  button={showPasswordButton}
+                />
+              </View>
 
-          <Input
-            value={password}
-            placeholder="Пароль"
-            onTextChange={handlePasswordChange}
-            secureTextEntry={isPasswordVisible}
-            button={showPasswordButton}
-          />
-        </View>
+              <View style={[styles.innerContainer, styles.buttonContainer]}>
+                <Button onPress={onLogin}>
+                  <Text style={[styles.baseText, styles.loginButtonText]}>Зареєстуватися</Text>
+                </Button>
 
-        <View style={[styles.innerContainer, styles.buttonContainer]}>
-          <Button onPress={onLogin}>
-            <Text style={[styles.baseText, styles.loginButtonText]}>Увійти</Text>
-          </Button>
-
-          <View style={styles.signUpContainer}>
-            <Text style={[styles.baseText, styles.passwordButtonText]}>
-              Немає акаунту?
-              <TouchableWithoutFeedback onPress={onSignUp}>
-                <Text style={styles.signUpText}> Зареєструватися</Text>
-              </TouchableWithoutFeedback>
-            </Text>
-          </View>
-        </View>
-      </View>
-    </ImageBackground>
+                <View style={styles.signUpContainer}>
+                  <Text style={[styles.baseText, styles.passwordButtonText]}>
+                    Вже є акаунт?{" "}
+                    <TouchableWithoutFeedback onPress={onSignIn}>
+                      <Text style={styles.signUpText}>Увійти</Text>
+                    </TouchableWithoutFeedback>
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </ImageBackground>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -132,7 +145,6 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: "100%",
-    height: "65%",
     backgroundColor: Colors.white,
     borderTopRightRadius: 25,
     borderTopLeftRadius: 25,
@@ -170,6 +182,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: 60,
   },
   signUpText: {
     textDecorationLine: "underline",
