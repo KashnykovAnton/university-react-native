@@ -13,21 +13,15 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
-import IconButton from "@/components/IconButton";
 import { Colors } from "@/constants/Colors";
 
-export const RegistrationScreen = () => {
-  const [name, setName] = useState("");
+export const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
   const [passwordButtonText, setPasswordButtonText] = useState("Показати");
 
   const navigation: any = useNavigation();
-
-  const handleNameChange = (value: string) => {
-    setName(value);
-  };
 
   const handleEmailChange = (value: string) => {
     setEmail(value);
@@ -38,9 +32,6 @@ export const RegistrationScreen = () => {
   };
 
   const showPassword = () => {
-    if (password.length === 0) {
-      return;
-    }
     setIsPasswordVisible((prev) => !prev);
     passwordButtonText === "Показати" ? setPasswordButtonText("Сховати") : setPasswordButtonText("Показати");
   };
@@ -49,12 +40,9 @@ export const RegistrationScreen = () => {
     Alert.alert("Credentials", `Your email: ${email}\nYour password: ${password}`);
   };
 
-  const onSignIn = () => {
-    navigation.navigate("Login");
+  const onSignUp = () => {
+    navigation.navigate("Registration");
   };
-
-  const handleAddAvatar = () => Alert.alert("Avatar Added");
-  const handleDeleteAvatar = () => Alert.alert("Avatar Deleted");
 
   const showPasswordButton = (
     <TouchableOpacity onPress={showPassword}>
@@ -71,15 +59,9 @@ export const RegistrationScreen = () => {
         <KeyboardAvoidingView behavior={"padding"} style={styles.formContainer}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View>
-              <View style={styles.avatar}>
-                <View style={styles.icon}>
-                  <IconButton onAdd={handleAddAvatar} onDelete={handleDeleteAvatar} />
-                </View>
-              </View>
-              <Text style={styles.title}>Реєстрація</Text>
+              <Text style={styles.title}>Увійти</Text>
 
               <View style={[styles.innerContainer, styles.inputContainer]}>
-                <Input value={name} autoFocus={true} placeholder="Логін" onTextChange={handleNameChange} />
                 <Input value={email} placeholder="Адреса електронної пошти" onTextChange={handleEmailChange} />
                 <Input
                   value={password}
@@ -92,14 +74,14 @@ export const RegistrationScreen = () => {
 
               <View style={[styles.innerContainer, styles.buttonContainer]}>
                 <Button onPress={onLogin}>
-                  <Text style={[styles.baseText, styles.loginButtonText]}>Зареєстуватися</Text>
+                  <Text style={[styles.baseText, styles.loginButtonText]}>Увійти</Text>
                 </Button>
 
                 <View style={styles.signUpContainer}>
                   <Text style={[styles.baseText, styles.passwordButtonText]}>
-                    Вже є акаунт?{" "}
-                    <TouchableWithoutFeedback onPress={onSignIn}>
-                      <Text style={styles.signUpText}>Увійти</Text>
+                    Немає акаунту?{" "}
+                    <TouchableWithoutFeedback onPress={onSignUp}>
+                      <Text style={styles.signUpText}>Зареєструватися</Text>
                     </TouchableWithoutFeedback>
                   </Text>
                 </View>
@@ -112,27 +94,13 @@ export const RegistrationScreen = () => {
   );
 };
 
-export default RegistrationScreen;
+export default LoginScreen;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-end",
-  },
-  avatar: {
-    width: 120,
-    height: 120,
-    backgroundColor: Colors.gray,
-    borderRadius: 16,
-    alignSelf: "center",
-    marginTop: -92,
-    marginBottom: 32,
-  },
-  icon: {
-    position: "absolute",
-    bottom: 14,
-    right: -12,
   },
   backgroundImg: {
     position: "absolute",
