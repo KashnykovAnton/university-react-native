@@ -9,9 +9,9 @@ import { Colors } from "@/constants/Colors";
 
 export default function Index() {
   const [fontsLoaded] = useFonts({
-    "Roboto-Regular": require("../assets/fonts/Roboto-Regular.ttf"),
-    "Roboto-Medium": require("../assets/fonts/Roboto-Medium.ttf"),
-    "Roboto-Bold": require("../assets/fonts/Roboto-Bold.ttf"),
+    "Roboto-Regular": require("./assets/fonts/Roboto-Regular.ttf"),
+    "Roboto-Medium": require("./assets/fonts/Roboto-Medium.ttf"),
+    "Roboto-Bold": require("./assets/fonts/Roboto-Bold.ttf"),
   });
 
   if (!fontsLoaded) {
@@ -22,7 +22,7 @@ export default function Index() {
 
   return (
     <NavigationContainer independent={true}>
-      <MainStack.Navigator initialRouteName="Registration" screenOptions={{ headerShown: false }}>
+      <MainStack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
         <MainStack.Screen name="Registration" component={RegistrationScreen} />
         <MainStack.Screen name="Login" component={LoginScreen} />
       </MainStack.Navigator>
