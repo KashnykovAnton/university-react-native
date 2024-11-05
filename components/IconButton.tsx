@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { StyleSheet, TouchableOpacity, Image } from "react-native";
-
-import AvatarAdd from "@/assets/images/avatarAdd.svg";
-import AvatarDel from "@/assets/images/avatarDel.svg";
+import { StyleSheet, TouchableOpacity } from "react-native";
+import AvatarAdd from "@/assets/icons/avatarAdd.svg";
+import AvatarDel from "@/assets/icons/avatarDel.svg";
 
 type IconButtonProps = {
   onAdd: () => void;

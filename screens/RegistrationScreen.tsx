@@ -9,12 +9,21 @@ import {
   TouchableOpacity,
   Keyboard,
   KeyboardAvoidingView,
+  Platform,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import IconButton from "@/components/IconButton";
 import { Colors } from "@/constants/Colors";
+
+type NavigationProps = {
+  navigate: (screen: string) => void;
+};
+
+const { width: SCREEN_WIDTH } = Dimensions.get("screen");
+
 
 export const RegistrationScreen = () => {
   const [name, setName] = useState("");
@@ -23,7 +32,7 @@ export const RegistrationScreen = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
   const [passwordButtonText, setPasswordButtonText] = useState("Показати");
 
-  const navigation: any = useNavigation();
+  const navigation: NavigationProps = useNavigation();
 
   const handleNameChange = (value: string) => {
     setName(value);
@@ -68,7 +77,7 @@ export const RegistrationScreen = () => {
         resizeMode="cover"
         style={styles.backgroundImg}
       >
-        <KeyboardAvoidingView behavior={"padding"} style={styles.formContainer}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.formContainer}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View>
               <View style={styles.avatar}>
@@ -91,10 +100,7 @@ export const RegistrationScreen = () => {
               </View>
 
               <View style={[styles.innerContainer, styles.buttonContainer]}>
-                <Button onPress={onLogin}>
-                  <Text style={[styles.baseText, styles.loginButtonText]}>Зареєстуватися</Text>
-                </Button>
-
+                <Button onPress={onLogin} text={"Зареєстуватися"}/>
                 <View style={styles.signUpContainer}>
                   <Text style={[styles.baseText, styles.passwordButtonText]}>
                     Вже є акаунт?{" "}
@@ -111,8 +117,6 @@ export const RegistrationScreen = () => {
     </TouchableWithoutFeedback>
   );
 };
-
-export default RegistrationScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -139,12 +143,12 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     height: "100%",
-    width: "100%",
+    width: SCREEN_WIDTH,
     alignItems: "center",
     justifyContent: "flex-end",
   },
   formContainer: {
-    width: "100%",
+    width: SCREEN_WIDTH,
     backgroundColor: Colors.white,
     borderTopRightRadius: 25,
     borderTopLeftRadius: 25,
@@ -166,15 +170,6 @@ const styles = StyleSheet.create({
   buttonContainer: {
     marginTop: 42,
   },
-  baseText: {
-    fontWeight: "400",
-    fontSize: 16,
-    lineHeight: 18,
-  },
-  loginButtonText: {
-    color: Colors.white,
-    textAlign: "center",
-  },
   passwordButtonText: {
     color: Colors.linkText,
   },
@@ -182,9 +177,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 60,
+    marginBottom: 78,
+  },
+  baseText: {
+    fontWeight: "400",
+    fontSize: 16,
+    lineHeight: 18,
   },
   signUpText: {
     textDecorationLine: "underline",
   },
 });
+
+export default RegistrationScreen;

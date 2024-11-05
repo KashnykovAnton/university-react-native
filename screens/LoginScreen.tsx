@@ -9,11 +9,19 @@ import {
   TouchableOpacity,
   Keyboard,
   KeyboardAvoidingView,
+  Platform,
+  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import { Colors } from "@/constants/Colors";
+
+type NavigationProps = {
+  navigate: (screen: string) => void;
+};
+
+const { width: SCREEN_WIDTH } = Dimensions.get("screen");
 
 export const LoginScreen = () => {
   const [email, setEmail] = useState("");
@@ -21,7 +29,7 @@ export const LoginScreen = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
   const [passwordButtonText, setPasswordButtonText] = useState("Показати");
 
-  const navigation: any = useNavigation();
+  const navigation: NavigationProps = useNavigation();
 
   const handleEmailChange = (value: string) => {
     setEmail(value);
@@ -37,7 +45,8 @@ export const LoginScreen = () => {
   };
 
   const onLogin = () => {
-    Alert.alert("Credentials", `Your email: ${email}\nYour password: ${password}`);
+    // Alert.alert("Credentials", `Your email: ${email}\nYour password: ${password}`);
+    navigation.navigate("Home");
   };
 
   const onSignUp = () => {
@@ -56,7 +65,7 @@ export const LoginScreen = () => {
         resizeMode="cover"
         style={styles.backgroundImg}
       >
-        <KeyboardAvoidingView behavior={"padding"} style={styles.formContainer}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.formContainer}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View>
               <Text style={styles.title}>Увійти</Text>
@@ -73,10 +82,7 @@ export const LoginScreen = () => {
               </View>
 
               <View style={[styles.innerContainer, styles.buttonContainer]}>
-                <Button onPress={onLogin}>
-                  <Text style={[styles.baseText, styles.loginButtonText]}>Увійти</Text>
-                </Button>
-
+                <Button onPress={onLogin} text={"Увійти"} />
                 <View style={styles.signUpContainer}>
                   <Text style={[styles.baseText, styles.passwordButtonText]}>
                     Немає акаунту?{" "}
@@ -107,12 +113,12 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     height: "100%",
-    width: "100%",
+    width: SCREEN_WIDTH,
     alignItems: "center",
     justifyContent: "flex-end",
   },
   formContainer: {
-    width: "100%",
+    width: SCREEN_WIDTH,
     backgroundColor: Colors.white,
     borderTopRightRadius: 25,
     borderTopLeftRadius: 25,
@@ -150,7 +156,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 60,
+    marginBottom: 144,
   },
   signUpText: {
     textDecorationLine: "underline",

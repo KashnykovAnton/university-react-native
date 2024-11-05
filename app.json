@@ -5,16 +5,25 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["assets/fonts/*"],
+    "plugins": ["expo-font"],
     "ios": {
       "supportsTablet": true
     },
-    "plugins": [
-      "expo-router",
-      "expo-font"
-    ],
-    "experiments": {
-      "typedRoutes": true
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/images/favicon.png"
     },
     "extra": {
       "eas": {
@@ -27,7 +36,6 @@
     },
     "updates": {
       "url": "https://u.expo.dev/0fd93745-2bca-40ef-9e37-f0bb8b98774e"
-    },
-    "android": {}
+    }
   }
 }
