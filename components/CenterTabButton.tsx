@@ -1,12 +1,19 @@
-import { StyleSheet, View } from "react-native";
+import { StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { Colors } from "@/constants/Colors";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 type CenterTabButtonProps = {
   children: React.ReactNode;
+  onPress?: () => void;
+  style?: StyleProp<ViewStyle>;
 };
 
-const CenterTabButton = ({ children }: CenterTabButtonProps) => {
-  return <View style={styles.button}>{children}</View>;
+const CenterTabButton = ({ children, onPress, style }: CenterTabButtonProps) => {
+  return (
+    <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
+      {children}
+    </TouchableOpacity>
+  );
 };
 
 const styles = StyleSheet.create({
