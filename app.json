@@ -14,8 +14,7 @@
     "assetBundlePatterns": ["assets/fonts/*"],
     "plugins": ["expo-font"],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.kashnykovanton.universityreactnative"
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {

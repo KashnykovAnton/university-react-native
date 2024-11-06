@@ -10,20 +10,17 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import IconButton from "@/components/IconButton";
 import { Colors } from "@/constants/Colors";
+import { Variables } from "@/constants/Variables";
 
 type NavigationProps = {
   navigate: (screen: string) => void;
 };
-
-const { width: SCREEN_WIDTH } = Dimensions.get("screen");
-
 
 export const RegistrationScreen = () => {
   const [name, setName] = useState("");
@@ -100,7 +97,7 @@ export const RegistrationScreen = () => {
               </View>
 
               <View style={[styles.innerContainer, styles.buttonContainer]}>
-                <Button onPress={onLogin} text={"Зареєстуватися"}/>
+                <Button onPress={onLogin} text={"Зареєстуватися"} />
                 <View style={styles.signUpContainer}>
                   <Text style={[styles.baseText, styles.passwordButtonText]}>
                     Вже є акаунт?{" "}
@@ -143,12 +140,12 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     height: "100%",
-    width: SCREEN_WIDTH,
+    width: Variables.SCREEN_WIDTH,
     alignItems: "center",
     justifyContent: "flex-end",
   },
   formContainer: {
-    width: SCREEN_WIDTH,
+    width: Variables.SCREEN_WIDTH,
     backgroundColor: Colors.white,
     borderTopRightRadius: 25,
     borderTopLeftRadius: 25,

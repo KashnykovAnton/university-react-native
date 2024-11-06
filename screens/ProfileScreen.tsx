@@ -1,10 +1,9 @@
-import { Dimensions, Image, ImageBackground, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, ImageBackground, ScrollView, StyleSheet, Text, View } from "react-native";
 import Post from "@/components/Post";
-import { Colors } from "@/constants/Colors";
 import AvatarDel from "@/assets/icons/avatarDel.svg";
 import LogoutButton from "@/components/LogoutButton";
-
-const { width: SCREEN_WIDTH } = Dimensions.get("screen");
+import { Colors } from "@/constants/Colors";
+import { Variables } from "@/constants/Variables";
 
 const ProfileScreen = () => {
   const handleLogout = () => {
@@ -57,16 +56,17 @@ const ProfileScreen = () => {
 
 const styles = StyleSheet.create({
   backgroundImg: {
-    width: SCREEN_WIDTH,
-    height: "100%",
+    position: "relative",
+    width: Variables.SCREEN_WIDTH,
+    height: Variables.SCREEN_HEIGHT,
     alignItems: "center",
   },
   scrollContainer: {
     flexGrow: 1,
-    width: SCREEN_WIDTH,
+    width: Variables.SCREEN_WIDTH,
   },
   mainContainer: {
-    width: SCREEN_WIDTH,
+    width: Variables.SCREEN_WIDTH,
     gap: 32,
     marginTop: 164,
     paddingHorizontal: 16,
