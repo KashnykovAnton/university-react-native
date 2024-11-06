@@ -9,6 +9,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Input from "@/components/Input";
@@ -21,19 +22,22 @@ type NavigationProps = {
 };
 
 export const LoginScreen = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
   const [passwordButtonText, setPasswordButtonText] = useState("Показати");
+  const [validationError, setValidationError] = useState(false);
 
   const navigation: NavigationProps = useNavigation();
 
-  const handleEmailChange = (value: string) => {
-    setEmail(value);
-  };
+  const { email, password } = formData;
 
-  const handlePasswordChange = (value: string) => {
-    setPassword(value);
+  const disabledButton = !email || !password;
+
+  const handleChange = (key: string, value: string) => {
+    setFormData((prevData) => ({ ...prevData, [key]: value }));
   };
 
   const showPassword = () => {
@@ -41,9 +45,19 @@ export const LoginScreen = () => {
     passwordButtonText === "Показати" ? setPasswordButtonText("Сховати") : setPasswordButtonText("Показати");
   };
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const onLogin = () => {
-    // Alert.alert("Credentials", `Your email: ${email}\nYour password: ${password}`);
-    navigation.navigate("Home");
+    if (!validateEmail(email)) {
+      setValidationError(true);
+      Alert.alert("Введіть, будь ласка, корректний email!");
+    } else {
+      setValidationError(false);
+      navigation.navigate("Home");
+    }
   };
 
   const onSignUp = () => {
@@ -68,18 +82,23 @@ export const LoginScreen = () => {
               <Text style={styles.title}>Увійти</Text>
 
               <View style={[styles.innerContainer, styles.inputContainer]}>
-                <Input value={email} placeholder="Адреса електронної пошти" onTextChange={handleEmailChange} />
+                <Input
+                  value={email}
+                  placeholder="Адреса електронної пошти"
+                  onTextChange={(value) => handleChange("email", value)}
+                  style={validationError && styles.validationError}
+                />
                 <Input
                   value={password}
                   placeholder="Пароль"
-                  onTextChange={handlePasswordChange}
+                  onTextChange={(value) => handleChange("password", value)}
                   secureTextEntry={isPasswordVisible}
                   button={showPasswordButton}
                 />
               </View>
 
               <View style={[styles.innerContainer, styles.buttonContainer]}>
-                <Button onPress={onLogin} text={"Увійти"} />
+                <Button onPress={onLogin} text={"Увійти"} disabled={disabledButton} />
                 <View style={styles.signUpContainer}>
                   <Text style={[styles.baseText, styles.passwordButtonText]}>
                     Немає акаунту?{" "}
@@ -157,5 +176,9 @@ const styles = StyleSheet.create({
   },
   signUpText: {
     textDecorationLine: "underline",
+  },
+  validationError: {
+    borderWidth: 2,
+    borderColor: Colors.red,
   },
 });

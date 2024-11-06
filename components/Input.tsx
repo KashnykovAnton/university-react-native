@@ -15,11 +15,12 @@ const Input = ({
   button,
   secureTextEntry = false,
   autoFocus = false,
+  style,
 }: InputProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <View style={[styles.container, isFocused && styles.focused]}>
+    <View style={[styles.container, isFocused && styles.focused, style]}>
       <TextInput
         value={value}
         autoFocus={autoFocus}
