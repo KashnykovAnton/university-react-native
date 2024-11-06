@@ -7,4 +7,5 @@ export const Colors = {
   placeholderText: "#BDBDBD",
   linkText: "#1B4371",
   inputBorder: "#E8E8E8",
+  overlay: "#00000080",
 };

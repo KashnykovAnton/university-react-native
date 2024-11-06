@@ -1,10 +1,11 @@
 import LoginScreen from "@/screens/LoginScreen";
 import RegistrationScreen from "@/screens/RegistrationScreen";
 import { createStackNavigator } from "@react-navigation/stack";
-import BottomTabNavigator from "./BottomTabNavigator";
+import BottomTabNavigator from "./BottomTabNavigator"
 import CommentsScreen from "@/screens/CommentsScreen";
 import { useNavigation } from "@react-navigation/native";
 import BackButton from "@/components/BackButton";
+import MapScreen from "@/screens/MapScreen";
 
 const Stack = createStackNavigator();
 
@@ -26,6 +27,15 @@ const StackNavigator = () => {
         options={{
           headerShown: true,
           title: "Коментарі",
+          headerLeft: () => <BackButton onPress={() => navigation.goBack()} />,
+        }}
+      />
+      <Stack.Screen
+        name="Map"
+        component={MapScreen}
+        options={{
+          headerShown: true,
+          title: "Карта",
           headerLeft: () => <BackButton onPress={() => navigation.goBack()} />,
         }}
       />
