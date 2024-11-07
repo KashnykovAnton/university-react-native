@@ -6,8 +6,10 @@ import LogoutButton from "@/components/LogoutButton";
 import BackButton from "@/components/BackButton";
 import CenterTabButton from "@/components/CenterTabButton";
 import Grid from "@/assets/icons/grid.svg";
+import GridFocus from "@/assets/icons/grid-focus.svg";
 import Plus from "@/assets/icons/plus.svg";
 import User from "@/assets/icons/user.svg";
+import UserFocus from "@/assets/icons/user-focus.svg";
 
 const Tab = createBottomTabNavigator();
 
@@ -32,7 +34,13 @@ const BottomTabNavigator = () => {
         component={PostsScreen}
         options={{
           headerRight: () => <LogoutButton onPress={handleLogout} />,
-          tabBarIcon: () => <Grid />,
+          tabBarIcon: ({ focused }) => {
+            if (focused) {
+              return <GridFocus />;
+            } else {
+              return <Grid />;
+            }
+          },
         }}
       />
       <Tab.Screen
@@ -45,13 +53,20 @@ const BottomTabNavigator = () => {
               <Plus />
             </CenterTabButton>
           ),
+          tabBarStyle: { display: "none" },
         })}
       />
       <Tab.Screen
-        name="Profile"
+        name="ProfileScreen"
         component={ProfileScreen}
         options={{
-          tabBarIcon: () => <User />,
+          tabBarIcon: ({ focused }) => {
+            if (focused) {
+              return <UserFocus />;
+            } else {
+              return <User />;
+            }
+          },
           headerShown: false,
         }}
       />

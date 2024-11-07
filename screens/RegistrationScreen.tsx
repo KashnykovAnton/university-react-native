@@ -10,55 +10,62 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import IconButton from "@/components/IconButton";
 import { Colors } from "@/constants/Colors";
+import { Variables } from "@/constants/Variables";
 
 type NavigationProps = {
   navigate: (screen: string) => void;
 };
 
-const { width: SCREEN_WIDTH } = Dimensions.get("screen");
-
-
 export const RegistrationScreen = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
   const [isPasswordVisible, setIsPasswordVisible] = useState(true);
   const [passwordButtonText, setPasswordButtonText] = useState("Показати");
+  const [validationError, setValidationError] = useState(false);
 
   const navigation: NavigationProps = useNavigation();
 
-  const handleNameChange = (value: string) => {
-    setName(value);
-  };
+  const { name, email, password } = formData;
 
-  const handleEmailChange = (value: string) => {
-    setEmail(value);
-  };
+  const disabledButton = !name || !email || !password;
 
-  const handlePasswordChange = (value: string) => {
-    setPassword(value);
+  const handleChange = (key: string, value: string) => {
+    setFormData((prevData) => ({ ...prevData, [key]: value }));
   };
 
   const showPassword = () => {
-    if (password.length === 0) {
+    if (!password) {
       return;
     }
     setIsPasswordVisible((prev) => !prev);
     passwordButtonText === "Показати" ? setPasswordButtonText("Сховати") : setPasswordButtonText("Показати");
   };
 
-  const onLogin = () => {
-    Alert.alert("Credentials", `Your email: ${email}\nYour password: ${password}`);
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
-  const onSignIn = () => {
+  const onSignUp = () => {
+    if (!validateEmail(email)) {
+      setValidationError(true);
+      Alert.alert("Введіть, будь ласка, корректний email!");
+    } else {
+      setValidationError(false);
+      Alert.alert("Credentials:", `Your name: ${name}\nYour email: ${email}\nYour password: ${password}`);
+    }
+  };
+
+  const onLogin = () => {
     navigation.navigate("Login");
   };
 
@@ -88,23 +95,33 @@ export const RegistrationScreen = () => {
               <Text style={styles.title}>Реєстрація</Text>
 
               <View style={[styles.innerContainer, styles.inputContainer]}>
-                <Input value={name} autoFocus={true} placeholder="Логін" onTextChange={handleNameChange} />
-                <Input value={email} placeholder="Адреса електронної пошти" onTextChange={handleEmailChange} />
+                <Input
+                  value={name}
+                  autoFocus={true}
+                  placeholder="Логін"
+                  onTextChange={(value) => handleChange("name", value)}
+                />
+                <Input
+                  value={email}
+                  placeholder="Адреса електронної пошти"
+                  onTextChange={(value) => handleChange("email", value)}
+                  style={validationError && styles.validationError}
+                />
                 <Input
                   value={password}
                   placeholder="Пароль"
-                  onTextChange={handlePasswordChange}
+                  onTextChange={(value) => handleChange("password", value)}
                   secureTextEntry={isPasswordVisible}
                   button={showPasswordButton}
                 />
               </View>
 
               <View style={[styles.innerContainer, styles.buttonContainer]}>
-                <Button onPress={onLogin} text={"Зареєстуватися"}/>
+                <Button onPress={onSignUp} text={"Зареєстуватися"} disabled={disabledButton} />
                 <View style={styles.signUpContainer}>
                   <Text style={[styles.baseText, styles.passwordButtonText]}>
                     Вже є акаунт?{" "}
-                    <TouchableWithoutFeedback onPress={onSignIn}>
+                    <TouchableWithoutFeedback onPress={onLogin}>
                       <Text style={styles.signUpText}>Увійти</Text>
                     </TouchableWithoutFeedback>
                   </Text>
@@ -143,12 +160,12 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     height: "100%",
-    width: SCREEN_WIDTH,
+    width: Variables.SCREEN_WIDTH,
     alignItems: "center",
     justifyContent: "flex-end",
   },
   formContainer: {
-    width: SCREEN_WIDTH,
+    width: Variables.SCREEN_WIDTH,
     backgroundColor: Colors.white,
     borderTopRightRadius: 25,
     borderTopLeftRadius: 25,
@@ -186,6 +203,10 @@ const styles = StyleSheet.create({
   },
   signUpText: {
     textDecorationLine: "underline",
+  },
+  validationError: {
+    borderWidth: 2,
+    borderColor: Colors.red,
   },
 });
 

@@ -9,7 +9,7 @@ type ButtonProps = {
 
 const Button = ({ onPress, disabled = false, text }: ButtonProps) => {
   return (
-    <TouchableOpacity style={[styles.button, disabled && styles.disabled]} onPress={onPress}>
+    <TouchableOpacity style={[styles.button, disabled && styles.disabled]} onPress={onPress} disabled={disabled}>
       <Text style={[styles.baseText, styles.buttonText, disabled && styles.disabledText]}>{text}</Text>
     </TouchableOpacity>
   );

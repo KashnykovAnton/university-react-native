@@ -22,10 +22,11 @@ type NavigationProps = {
 const Post = ({ url, title, comments, likes, location, profile = false }: PostProps) => {
   const iconStrokeStyle = comments > 0 ? Colors.orange : Colors.placeholderText;
   const iconFillStyle = comments > 0 ? Colors.orange : "transparent";
-  
+
   const navigation: NavigationProps = useNavigation();
-  
-  const handlePostButtonClick = () => navigation.navigate("Comments");
+
+  const handleCommentsClick = () => navigation.navigate("Comments");
+  const handleLocationClick = () => navigation.navigate("Map");
 
   return (
     <View style={styles.postWrapper}>
@@ -33,7 +34,7 @@ const Post = ({ url, title, comments, likes, location, profile = false }: PostPr
       <Text style={styles.postTitle}>{title}</Text>
       <View style={styles.postBottomWrapper}>
         <View style={styles.postLeftBottomPart}>
-          <TouchableOpacity onPress={handlePostButtonClick} style={styles.postIconAndText}>
+          <TouchableOpacity onPress={handleCommentsClick} style={styles.postIconAndText}>
             <MessageCircle stroke={iconStrokeStyle} fill={iconFillStyle} />
             <Text style={styles.postIconText}>{comments}</Text>
           </TouchableOpacity>
@@ -44,10 +45,10 @@ const Post = ({ url, title, comments, likes, location, profile = false }: PostPr
             </View>
           )}
         </View>
-        <View style={styles.postLocation}>
+        <TouchableOpacity onPress={handleLocationClick} style={styles.postLocation}>
           <MapPin />
           <Text style={styles.postTextLocation}>{location}</Text>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
