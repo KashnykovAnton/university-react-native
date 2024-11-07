@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import { TouchableOpacity, TouchableWithoutFeedback } from "react-native-gesture-handler";
+import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import CreatePostInput from "@/components/CreatePostInput";
-import { Colors } from "@/constants/Colors";
-import CameraIcon from "@/assets/icons/camera.svg";
-import MapPin from "@/assets/icons/map-pin.svg";
-import Button from "@/components/Button";
-import * as Location from "expo-location";
-import { Variables } from "@/constants/Variables";
 import { useNavigation } from "@react-navigation/native";
+import * as Location from "expo-location";
+import CreatePostInput from "@/components/CreatePostInput";
+import CameraField from "@/components/CameraField";
 import CenterTabButton from "@/components/CenterTabButton";
+import Button from "@/components/Button";
+import { Colors } from "@/constants/Colors";
+import { Variables } from "@/constants/Variables";
+import MapPin from "@/assets/icons/map-pin.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
 
 type NavigationProps = {
@@ -23,9 +23,11 @@ const CreatePostsScreen = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
+    const [capturedImage, setCapturedImage] = useState<string | null>(null);
+
   const navigation: NavigationProps = useNavigation();
 
-  const disabledButton = !postName || !postLocation;
+  const disabledButton = !postName || !postLocation || !capturedImage;
 
   const handlePostNameChange = (value: string) => {
     setPostName(value);
@@ -58,6 +60,13 @@ const CreatePostsScreen = () => {
     })();
   }, [modalVisible]);
 
+    useEffect(() => {
+      return () => {
+        setCapturedImage(null);
+      };
+    }, []);
+
+
   const onModalClose = () => {
     setModalVisible(false);
     setPostName("");
@@ -68,6 +77,7 @@ const CreatePostsScreen = () => {
   const onClear = () => {
     setPostName("");
     setPostLocation("");
+    setCapturedImage(null);
   };
 
   let text;
@@ -91,14 +101,9 @@ const CreatePostsScreen = () => {
 
         <ScrollView>
           <View style={styles.scrollContainer}>
-            <View style={styles.cameraContainer}>
-              <TouchableOpacity style={styles.cameraField}>
-                <View style={styles.cameraWrapper}>
-                  <CameraIcon />
-                </View>
-              </TouchableOpacity>
-              <Text style={styles.cameraNotice}>Завантажте фото</Text>
-            </View>
+
+            <CameraField image={capturedImage} setImage={ setCapturedImage} />
+
             <View style={styles.inputsContainer}>
               <CreatePostInput value={postName} placeholder={"Назва..."} onTextChange={handlePostNameChange} />
               <CreatePostInput
