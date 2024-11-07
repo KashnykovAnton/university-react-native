@@ -1,24 +1,26 @@
 import "react-native-gesture-handler";
-import { useFonts } from "expo-font";
 import { ActivityIndicator } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { persistor, store } from "./redux/store/store";
+import AppNavigation from "@/navigation/AppNavigation";
+import { useCustomFonts } from "@/hooks/useCustomFonts";
 import { Colors } from "@/constants/Colors";
-import StackNavigator from "./navigation/StackNavigator";
 
-export default function Index() {
-  const [fontsLoaded] = useFonts({
-    "Roboto-Regular": require("./assets/fonts/Roboto-Regular.ttf"),
-    "Roboto-Medium": require("./assets/fonts/Roboto-Medium.ttf"),
-    "Roboto-Bold": require("./assets/fonts/Roboto-Bold.ttf"),
-  });
+export default function App() {
+  const [fontsLoaded] = useCustomFonts();
+
+  const loader = <ActivityIndicator size="large" color={Colors.orange} />;
 
   if (!fontsLoaded) {
-    return <ActivityIndicator size="large" color={Colors.orange} />;
+    return loader;
   }
 
   return (
-    <NavigationContainer independent={true}>
-      <StackNavigator />
-    </NavigationContainer>
+    <Provider store={store}>
+      <PersistGate loading={loader} persistor={persistor}>
+        <AppNavigation />
+      </PersistGate>
+    </Provider>
   );
 }
