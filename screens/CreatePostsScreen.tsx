@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
 import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import * as Location from "expo-location";
 import CreatePostInput from "@/components/CreatePostInput";
 import CameraField from "@/components/CameraField";
@@ -9,25 +9,39 @@ import CenterTabButton from "@/components/CenterTabButton";
 import Button from "@/components/Button";
 import { Colors } from "@/constants/Colors";
 import { Variables } from "@/constants/Variables";
+import { RootStackParamList } from "@/types/navigation";
 import MapPin from "@/assets/icons/map-pin.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
 
-type NavigationProps = {
-  navigate: (screen: string) => void;
-};
+type NavigationProps = NavigationProp<RootStackParamList>;
 
 const CreatePostsScreen = () => {
   const [postName, setPostName] = useState("");
   const [postLocation, setPostLocation] = useState("");
   const [location, setLocation] = useState({});
+  const [address, setAddress] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
-
-    const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
   const navigation: NavigationProps = useNavigation();
 
   const disabledButton = !postName || !postLocation || !capturedImage;
+
+  const onClear = () => {
+    setPostName("");
+    setPostLocation("");
+    setLocation({});
+    setAddress("");
+    setErrorMsg("");
+    setCapturedImage(null);
+  };
+
+  useEffect(() => {
+    return navigation.addListener("focus", () => {
+      onClear();
+    });
+  }, [navigation]);
 
   const handlePostNameChange = (value: string) => {
     setPostName(value);
@@ -55,36 +69,39 @@ const CreatePostsScreen = () => {
             longitude: locationData.coords.longitude,
           };
           setLocation(coords);
+          try {
+            const address = await Location.reverseGeocodeAsync(coords);
+            if (address.length > 0) {
+              const { street, city, region, country } = address[0];
+              setAddress(`${country}, ${region},\n ${city}, ${street}`);
+            }
+          } catch (error) {
+            setErrorMsg("Unable to get address information");
+          }
         }
       }
     })();
   }, [modalVisible]);
 
-    useEffect(() => {
-      return () => {
-        setCapturedImage(null);
-      };
-    }, []);
-
+  useEffect(() => {
+    return () => {
+      setCapturedImage(null);
+    };
+  }, []);
 
   const onModalClose = () => {
     setModalVisible(false);
-    setPostName("");
-    setPostLocation("");
-    navigation.navigate("Публікації");
-  };
-
-  const onClear = () => {
-    setPostName("");
-    setPostLocation("");
-    setCapturedImage(null);
+    setTimeout(() => onClear(), 1000);
+    navigation.navigate("Posts");
   };
 
   let text;
   if (errorMsg) {
     text = errorMsg;
-  } else if (location) {
-    text = `You shared your location: ${JSON.stringify(location)}`;
+  } else if (Object.keys(location).length > 0) {
+    text = `You shared your location:\n ${address}`;
+  } else {
+    text = "Location not available";
   }
 
   return (
@@ -101,8 +118,7 @@ const CreatePostsScreen = () => {
 
         <ScrollView>
           <View style={styles.scrollContainer}>
-
-            <CameraField image={capturedImage} setImage={ setCapturedImage} />
+            <CameraField image={capturedImage} setImage={setCapturedImage} />
 
             <View style={styles.inputsContainer}>
               <CreatePostInput value={postName} placeholder={"Назва..."} onTextChange={handlePostNameChange} />
