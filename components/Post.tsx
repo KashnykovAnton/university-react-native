@@ -1,36 +1,25 @@
-import { Alert, Image, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { Colors } from "@/constants/Colors";
+import { PostProps, RootStackNavigationProps } from "@/types/types";
 import MessageCircle from "@/assets/icons/message-circle.svg";
 import ThumbsUp from "@/assets/icons/thumbs-up.svg";
 import MapPin from "@/assets/icons/map-pin.svg";
-import { useNavigation } from "@react-navigation/native";
 
-type PostProps = {
-  url: ReturnType<typeof require>;
-  title: string;
-  comments: number;
-  likes: number;
-  location: string;
-  profile?: boolean;
-};
-
-type NavigationProps = {
-  navigate: (screen: string) => void;
-};
-
-const Post = ({ url, title, comments, likes, location, profile = false }: PostProps) => {
+const Post = (post: PostProps) => {
+  const { title, postLocation, capturedImage, profile = false, coordsLocation, comments = 5, likes = 0 } = post;
   const iconStrokeStyle = comments > 0 ? Colors.orange : Colors.placeholderText;
   const iconFillStyle = comments > 0 ? Colors.orange : "transparent";
 
-  const navigation: NavigationProps = useNavigation();
+  const navigation: RootStackNavigationProps = useNavigation();
 
   const handleCommentsClick = () => navigation.navigate("Comments");
-  const handleLocationClick = () => navigation.navigate("Map");
+  const handleLocationClick = () => navigation.navigate("Map", { coordsLocation });
 
   return (
     <View style={styles.postWrapper}>
-      <Image source={url} resizeMode="cover" style={styles.postImage} />
+      <Image source={{ uri: capturedImage }} resizeMode="cover" style={styles.postImage} />
       <Text style={styles.postTitle}>{title}</Text>
       <View style={styles.postBottomWrapper}>
         <View style={styles.postLeftBottomPart}>
@@ -47,7 +36,7 @@ const Post = ({ url, title, comments, likes, location, profile = false }: PostPr
         </View>
         <TouchableOpacity onPress={handleLocationClick} style={styles.postLocation}>
           <MapPin />
-          <Text style={styles.postTextLocation}>{location}</Text>
+          <Text style={styles.postTextLocation}>{postLocation}</Text>
         </TouchableOpacity>
       </View>
     </View>

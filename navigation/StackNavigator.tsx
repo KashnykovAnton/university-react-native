@@ -1,11 +1,13 @@
+import { useSelector } from "react-redux";
+import { useNavigation } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "@/screens/LoginScreen";
 import RegistrationScreen from "@/screens/RegistrationScreen";
-import { createStackNavigator } from "@react-navigation/stack";
-import BottomTabNavigator from "./BottomTabNavigator"
 import CommentsScreen from "@/screens/CommentsScreen";
-import { useNavigation } from "@react-navigation/native";
-import BackButton from "@/components/BackButton";
 import MapScreen from "@/screens/MapScreen";
+import BackButton from "@/components/BackButton";
+import BottomTabNavigator from "./BottomTabNavigator";
+import { getCurrentUser } from "@/redux/store/selectors";
 
 const Stack = createStackNavigator();
 
@@ -17,8 +19,9 @@ const commonScreenOptions = () => ({
 
 const StackNavigator = () => {
   const navigation = useNavigation();
+  const user = useSelector(getCurrentUser);
   return (
-    <Stack.Navigator initialRouteName="Login" screenOptions={commonScreenOptions}>
+    <Stack.Navigator initialRouteName={user.uid ? "Home" : "Login"} screenOptions={commonScreenOptions}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Registration" component={RegistrationScreen} />
       <Stack.Screen
