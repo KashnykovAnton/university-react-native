@@ -8,7 +8,7 @@ import {
 import { auth } from "@/config";
 import { setUserInfo, clearUserInfo } from "../redux/reducers/userSlice";
 import { AppDispatch } from "../redux/store/store";
-import { addUser } from "./firestore";
+import { addUser, getUser } from "./firestore";
 
 // Типи для реєстрації та авторизації
 interface AuthCredentials {
@@ -64,14 +64,15 @@ export const logoutDB = async (dispatch: AppDispatch) => {
 
 // Відстеження змін у стані аутентифікації
 export const authStateChanged = (dispatch: AppDispatch) => {
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (user) {
+      const userData = await getUser(user.uid);
+
       dispatch(
         setUserInfo({
+          ...userData,
           uid: user.uid,
-          email: user.email ? user.email : "",
-          displayName: user.displayName ? user.displayName : "",
-          profilePhoto: user.photoURL ? user.photoURL : "",
+          email: user.email || "",
         })
       );
     } else {

@@ -47,7 +47,7 @@ export const updateUserInFirestore = async (uid: string, data: any) => {
 // Функція для завантаження зображення
 export const uploadImage = async (userId: string, file: Blob, fileName: string, path: string) => {
   try {
-    const imageRef = ref(storage, `${path}/${userId}/${fileName}_${uid()}`);
+    const imageRef = ref(storage, `${path}/${userId}/${uid()}_${fileName}`);
 
     const downloadURL = await new Promise<string>((resolve, reject) => {
       const uploadTask = uploadBytesResumable(imageRef, file);
