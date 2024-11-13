@@ -1,19 +1,18 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
-interface UserData {
-  uid: string;
-  email: string;
-  displayName?: string;
-  profilePhoto?: string;
-};
+import { UserData } from "@/types/types";
 
 // Типи для початкового стану
 interface UserState {
-  userInfo: UserData | null;
+  userInfo: UserData;
 }
 
 const initialState: UserState = {
-  userInfo: null,
+  userInfo: {
+    uid: "",
+    email: "",
+    displayName: "",
+    profilePhoto: "",
+  },
 };
 
 // Створення slice для користувача
@@ -25,7 +24,7 @@ const userSlice = createSlice({
       state.userInfo = action.payload;
     },
     clearUserInfo(state) {
-      state.userInfo = null;
+      state.userInfo = initialState.userInfo;
     },
   },
 });

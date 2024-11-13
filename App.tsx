@@ -1,11 +1,13 @@
 import "react-native-gesture-handler";
+import { useEffect } from "react";
 import { ActivityIndicator } from "react-native";
-import { Provider } from "react-redux";
+import { Provider, useDispatch } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
-import { persistor, store } from "./redux/store/store";
 import AppNavigation from "@/navigation/AppNavigation";
 import { useCustomFonts } from "@/hooks/useCustomFonts";
 import { Colors } from "@/constants/Colors";
+import { persistor, store } from "./redux/store/store";
+import { authStateChanged } from "./utils/auth";
 
 export default function App() {
   const [fontsLoaded] = useCustomFonts();
@@ -19,8 +21,18 @@ export default function App() {
   return (
     <Provider store={store}>
       <PersistGate loading={loader} persistor={persistor}>
-        <AppNavigation />
+        <AuthListener />
       </PersistGate>
     </Provider>
   );
 }
+
+const AuthListener = () => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    authStateChanged(dispatch);
+  }, [dispatch]);
+
+  return <AppNavigation />;
+};

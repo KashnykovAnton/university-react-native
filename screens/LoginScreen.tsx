@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Text,
   View,
@@ -12,25 +12,29 @@ import {
   Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
+import ButtonComponent from "@/components/ButtonComponent";
 import Input from "@/components/Input";
-import Button from "@/components/Button";
+import Title from "@/components/Title";
 import { Colors } from "@/constants/Colors";
 import { Variables } from "@/constants/Variables";
+import { RootStackNavigationProps } from "@/types/types";
+import { loginDB } from "@/utils/auth";
+import { getCurrentUser } from "@/redux/store/selectors";
 
-type NavigationProps = {
-  navigate: (screen: string) => void;
+const initialFormData = {
+  email: "",
+  password: "",
 };
 
 export const LoginScreen = () => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const [isPasswordVisible, setIsPasswordVisible] = useState(true);
+  const [formData, setFormData] = useState(initialFormData);
+  const [isPasswordHide, setIsPasswordHide] = useState(true);
   const [passwordButtonText, setPasswordButtonText] = useState("Показати");
   const [validationError, setValidationError] = useState(false);
-
-  const navigation: NavigationProps = useNavigation();
+  const dispatch = useDispatch();
+  const user = useSelector(getCurrentUser);
+  const navigation: RootStackNavigationProps = useNavigation();
 
   const { email, password } = formData;
 
@@ -41,7 +45,7 @@ export const LoginScreen = () => {
   };
 
   const showPassword = () => {
-    setIsPasswordVisible((prev) => !prev);
+    setIsPasswordHide((prev) => !prev);
     passwordButtonText === "Показати" ? setPasswordButtonText("Сховати") : setPasswordButtonText("Показати");
   };
 
@@ -50,19 +54,42 @@ export const LoginScreen = () => {
     return emailRegex.test(email);
   };
 
-  const onLogin = () => {
+  useEffect(() => {
+    if (user.uid) {
+      navigation.navigate("Home");
+    }
+  }, [user.uid, navigation]);
+
+  const onLogin = async () => {
     if (!validateEmail(email)) {
       setValidationError(true);
       Alert.alert("Введіть, будь ласка, корректний email!");
     } else {
       setValidationError(false);
-      navigation.navigate("Home");
+      try {
+        await loginDB({ email, password }, dispatch);
+      } catch (error) {
+        Alert.alert("Error logging in", (error as Error).message);
+      }
     }
   };
 
   const onSignUp = () => {
     navigation.navigate("Registration");
   };
+
+  const onClear = () => {
+    setFormData(initialFormData);
+    setIsPasswordHide(true);
+    setPasswordButtonText("Показати");
+    setValidationError(false);
+  };
+
+  useEffect(() => {
+    return navigation.addListener("focus", () => {
+      onClear();
+    });
+  }, [navigation]);
 
   const showPasswordButton = (
     <TouchableOpacity onPress={showPassword}>
@@ -79,7 +106,7 @@ export const LoginScreen = () => {
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.formContainer}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View>
-              <Text style={styles.title}>Увійти</Text>
+              <Title text="Увійти" />
 
               <View style={[styles.innerContainer, styles.inputContainer]}>
                 <Input
@@ -92,22 +119,19 @@ export const LoginScreen = () => {
                   value={password}
                   placeholder="Пароль"
                   onTextChange={(value) => handleChange("password", value)}
-                  secureTextEntry={isPasswordVisible}
+                  secureTextEntry={isPasswordHide}
                   button={showPasswordButton}
                 />
               </View>
 
-              <View style={[styles.innerContainer, styles.buttonContainer]}>
-                <Button onPress={onLogin} text={"Увійти"} disabled={disabledButton} />
-                <View style={styles.signUpContainer}>
-                  <Text style={[styles.baseText, styles.passwordButtonText]}>
-                    Немає акаунту?{" "}
-                    <TouchableWithoutFeedback onPress={onSignUp}>
-                      <Text style={styles.signUpText}>Зареєструватися</Text>
-                    </TouchableWithoutFeedback>
-                  </Text>
-                </View>
-              </View>
+              <ButtonComponent
+                handlePress={onLogin}
+                textButton="Увійти"
+                disable={disabledButton}
+                questionText="Немає акаунту? "
+                handleAct={onSignUp}
+                linktext="Зареєструватися"
+              />
             </View>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
@@ -141,41 +165,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 32,
   },
-  title: {
-    fontSize: 30,
-    fontWeight: "500",
-    lineHeight: 36,
-    textAlign: "center",
-  },
   innerContainer: {
     gap: 16,
   },
   inputContainer: {
     marginTop: 32,
   },
-  buttonContainer: {
-    marginTop: 42,
-  },
   baseText: {
     fontWeight: "400",
     fontSize: 16,
     lineHeight: 18,
   },
-  loginButtonText: {
-    color: Colors.white,
-    textAlign: "center",
-  },
   passwordButtonText: {
     color: Colors.linkText,
-  },
-  signUpContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 144,
-  },
-  signUpText: {
-    textDecorationLine: "underline",
   },
   validationError: {
     borderWidth: 2,

@@ -1,7 +1,9 @@
+import { useNavigation } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useDispatch } from "react-redux";
 import CreatePostsScreen from "@/screens/CreatePostsScreen";
 import PostsScreen from "@/screens/PostsScreen";
 import ProfileScreen from "@/screens/ProfileScreen";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import LogoutButton from "@/components/LogoutButton";
 import BackButton from "@/components/BackButton";
 import CenterTabButton from "@/components/CenterTabButton";
@@ -10,6 +12,8 @@ import GridFocus from "@/assets/icons/grid-focus.svg";
 import Plus from "@/assets/icons/plus.svg";
 import User from "@/assets/icons/user.svg";
 import UserFocus from "@/assets/icons/user-focus.svg";
+import { logoutDB } from "@/utils/auth";
+import { RootStackNavigationProps } from "@/types/types";
 
 const Tab = createBottomTabNavigator();
 
@@ -20,8 +24,12 @@ const commonScreenOptions = () => ({
 });
 
 const BottomTabNavigator = () => {
-  const handleLogout = () => {
-    console.log("Logout");
+  const dispatch = useDispatch();
+  const navigation: RootStackNavigationProps = useNavigation();
+
+  const handleLogout = async () => {
+    await logoutDB(dispatch);
+    navigation.navigate("Login");
   };
 
   return (

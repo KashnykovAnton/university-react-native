@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Text,
   View,
@@ -12,41 +12,71 @@ import {
   Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useSelector } from "react-redux";
+import * as ImagePicker from "expo-image-picker";
 import Input from "@/components/Input";
-import Button from "@/components/Button";
-import IconButton from "@/components/IconButton";
+import Title from "@/components/Title";
+import ButtonComponent from "@/components/ButtonComponent";
+import ProfilePhotoComponent from "@/components/ProfilePhotoComponent";
 import { Colors } from "@/constants/Colors";
 import { Variables } from "@/constants/Variables";
+import { registerDB } from "@/utils/auth";
+import { RootStackNavigationProps } from "@/types/types";
+import { getCurrentUser } from "@/redux/store/selectors";
+import { uploadImage } from "@/utils/firestore";
 
-type NavigationProps = {
-  navigate: (screen: string) => void;
+const initialFormData = {
+  name: "",
+  email: "",
+  password: "",
 };
 
 export const RegistrationScreen = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-  const [isPasswordVisible, setIsPasswordVisible] = useState(true);
+  const [formData, setFormData] = useState(initialFormData);
+  const [isPasswordHide, setIsPasswordHide] = useState(true);
   const [passwordButtonText, setPasswordButtonText] = useState("Показати");
   const [validationError, setValidationError] = useState(false);
+  const [profileLocalPhoto, setProfileLocalPhoto] = useState("");
 
-  const navigation: NavigationProps = useNavigation();
+  const user = useSelector(getCurrentUser);
+  const navigation: RootStackNavigationProps = useNavigation();
 
   const { name, email, password } = formData;
-
   const disabledButton = !name || !email || !password;
 
   const handleChange = (key: string, value: string) => {
     setFormData((prevData) => ({ ...prevData, [key]: value }));
   };
 
+  const handleAddPhoto = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      alert("Permission to access media library is required!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 1,
+    });
+
+    if (!result.canceled && user) {
+      const uri = result.assets[0].uri;
+      setProfileLocalPhoto(uri);
+    }
+  };
+
+  const handleDeletePhoto = async () => {
+    setProfileLocalPhoto("");
+  };
+
   const showPassword = () => {
     if (!password) {
       return;
     }
-    setIsPasswordVisible((prev) => !prev);
+    setIsPasswordHide((prev) => !prev);
     passwordButtonText === "Показати" ? setPasswordButtonText("Сховати") : setPasswordButtonText("Показати");
   };
 
@@ -55,13 +85,24 @@ export const RegistrationScreen = () => {
     return emailRegex.test(email);
   };
 
-  const onSignUp = () => {
+  useEffect(() => {
+    if (user.uid) {
+      navigation.navigate("Home");
+    }
+  }, [user.uid, navigation]);
+
+  const onSignUp = async () => {
     if (!validateEmail(email)) {
       setValidationError(true);
       Alert.alert("Введіть, будь ласка, корректний email!");
     } else {
       setValidationError(false);
-      Alert.alert("Credentials:", `Your name: ${name}\nYour email: ${email}\nYour password: ${password}`);
+      try {
+        const profilePhoto = await createImageUrl(profileLocalPhoto);
+        await registerDB({ name, email, password, profilePhoto });
+      } catch (error) {
+        Alert.alert("registration error", (error as Error).message);
+      }
     }
   };
 
@@ -69,14 +110,39 @@ export const RegistrationScreen = () => {
     navigation.navigate("Login");
   };
 
-  const handleAddAvatar = () => Alert.alert("Avatar Added");
-  const handleDeleteAvatar = () => Alert.alert("Avatar Deleted");
+  const createImageUrl = async (uri: string) => {
+    if (!uri) {
+      return "";
+    }
+    const response = await fetch(uri);
+    const file = await response.blob();
+    const fileName = uri.split("/").pop() || "";
+    const fileType = file.type;
+    const imageFile = new File([file], fileName, { type: fileType });
+    const imageUrl = await uploadImage(user.uid, imageFile, fileName, "profilePhotos");
+    return imageUrl;
+  };
+
+  const onClear = () => {
+    setFormData(initialFormData);
+    setIsPasswordHide(true);
+    setPasswordButtonText("Показати");
+    setValidationError(false);
+    setProfileLocalPhoto("");
+  };
+
+  useEffect(() => {
+    return navigation.addListener("focus", () => {
+      onClear();
+    });
+  }, [navigation]);
 
   const showPasswordButton = (
     <TouchableOpacity onPress={showPassword}>
       <Text style={[styles.baseText, styles.passwordButtonText]}>{passwordButtonText}</Text>
     </TouchableOpacity>
   );
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ImageBackground
@@ -87,13 +153,12 @@ export const RegistrationScreen = () => {
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.formContainer}>
           <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View>
-              <View style={styles.avatar}>
-                <View style={styles.icon}>
-                  <IconButton onAdd={handleAddAvatar} onDelete={handleDeleteAvatar} />
-                </View>
-              </View>
-              <Text style={styles.title}>Реєстрація</Text>
-
+              <ProfilePhotoComponent
+                photoUrl={profileLocalPhoto}
+                handleAdd={handleAddPhoto}
+                handleDel={handleDeletePhoto}
+              />
+              <Title text="Реєстрація" style={styles.title} />
               <View style={[styles.innerContainer, styles.inputContainer]}>
                 <Input
                   value={name}
@@ -111,22 +176,18 @@ export const RegistrationScreen = () => {
                   value={password}
                   placeholder="Пароль"
                   onTextChange={(value) => handleChange("password", value)}
-                  secureTextEntry={isPasswordVisible}
+                  secureTextEntry={isPasswordHide}
                   button={showPasswordButton}
                 />
               </View>
-
-              <View style={[styles.innerContainer, styles.buttonContainer]}>
-                <Button onPress={onSignUp} text={"Зареєстуватися"} disabled={disabledButton} />
-                <View style={styles.signUpContainer}>
-                  <Text style={[styles.baseText, styles.passwordButtonText]}>
-                    Вже є акаунт?{" "}
-                    <TouchableWithoutFeedback onPress={onLogin}>
-                      <Text style={styles.signUpText}>Увійти</Text>
-                    </TouchableWithoutFeedback>
-                  </Text>
-                </View>
-              </View>
+              <ButtonComponent
+                handlePress={onSignUp}
+                textButton="Зареєстуватися"
+                disable={disabledButton}
+                questionText="Вже є акаунт? "
+                handleAct={onLogin}
+                linktext="Увійти"
+              />
             </View>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
@@ -140,20 +201,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "flex-end",
-  },
-  avatar: {
-    width: 120,
-    height: 120,
-    backgroundColor: Colors.gray,
-    borderRadius: 16,
-    alignSelf: "center",
-    marginTop: -92,
-    marginBottom: 32,
-  },
-  icon: {
-    position: "absolute",
-    bottom: 14,
-    right: -12,
   },
   backgroundImg: {
     position: "absolute",
@@ -173,10 +220,7 @@ const styles = StyleSheet.create({
     paddingTop: 32,
   },
   title: {
-    fontSize: 30,
-    fontWeight: "500",
-    lineHeight: 36,
-    textAlign: "center",
+    marginTop: 32,
   },
   innerContainer: {
     gap: 16,
@@ -184,25 +228,13 @@ const styles = StyleSheet.create({
   inputContainer: {
     marginTop: 32,
   },
-  buttonContainer: {
-    marginTop: 42,
-  },
   passwordButtonText: {
     color: Colors.linkText,
-  },
-  signUpContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 78,
   },
   baseText: {
     fontWeight: "400",
     fontSize: 16,
     lineHeight: 18,
-  },
-  signUpText: {
-    textDecorationLine: "underline",
   },
   validationError: {
     borderWidth: 2,

@@ -1,24 +1,23 @@
-import type { StaticParamList } from "@react-navigation/native";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-const HomeTabs = createBottomTabNavigator({
-  screens: {
-    Posts: PostsScreen,
-    CreatePost: ProfileScreen,
-    Profile: ProfileScreen,
-  },
-});
+export type RootStackParamList = {
+  Login: undefined;
+  Registration: undefined;
+  Comments: undefined;
+  Map: {coordsLocation: { latitude: number; longitude: number } };
+  Home: undefined;
+};
 
-const RootStack = createNativeStackNavigator({
-  screens: {
-    Login: LoginScreen,
-    Registration: RegistrationScreen,
-    Comments: CommentsScreen,
-    Map: MapScreen,
-    Home: HomeTabs,
-  },
-});
+export type HomeTabParamList = {
+  Posts: undefined;
+  CreatePost: undefined;
+  Profile: undefined;
+};
 
-export type RootStackParamList = StaticParamList<typeof RootStack>;
+const HomeTabs = createBottomTabNavigator<HomeTabParamList>();
+const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 declare global {
   namespace ReactNavigation {

@@ -1,60 +1,46 @@
 import { useEffect, useState } from "react";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
-import { Keyboard, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
+import {
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { uid } from "uid";
 import * as Location from "expo-location";
+import * as ImagePicker from "expo-image-picker";
+import { useSelector } from "react-redux";
 import CreatePostInput from "@/components/CreatePostInput";
-import CameraField from "@/components/CameraField";
 import CenterTabButton from "@/components/CenterTabButton";
+import CameraField from "@/components/CameraField";
+import IconButton from "@/components/IconButton";
 import Button from "@/components/Button";
 import { Colors } from "@/constants/Colors";
 import { Variables } from "@/constants/Variables";
-import { RootStackParamList } from "@/types/navigation";
 import MapPin from "@/assets/icons/map-pin.svg";
 import TrashIcon from "@/assets/icons/trash.svg";
-
-type NavigationProps = NavigationProp<RootStackParamList>;
+import { HomeTabNavigationProps } from "@/types/types";
+import { addPost, uploadImage } from "@/utils/firestore";
+import { getCurrentUser } from "@/redux/store/selectors";
 
 const CreatePostsScreen = () => {
   const [postName, setPostName] = useState("");
   const [postLocation, setPostLocation] = useState("");
-  const [location, setLocation] = useState({});
-  const [address, setAddress] = useState("");
+  const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
-  const navigation: NavigationProps = useNavigation();
-
+  const navigation: HomeTabNavigationProps = useNavigation();
+  const user = useSelector(getCurrentUser);
   const disabledButton = !postName || !postLocation || !capturedImage;
-
-  const onClear = () => {
-    setPostName("");
-    setPostLocation("");
-    setLocation({});
-    setAddress("");
-    setErrorMsg("");
-    setCapturedImage(null);
-  };
-
-  useEffect(() => {
-    return navigation.addListener("focus", () => {
-      onClear();
-    });
-  }, [navigation]);
-
-  const handlePostNameChange = (value: string) => {
-    setPostName(value);
-  };
-
-  const handlePostLocationChange = (value: string) => {
-    setPostLocation(value);
-  };
-
-  const onPublic = () => {
-    setLocation({});
-    setModalVisible(true);
-  };
+  const isLocationExist = Object.keys(location).length > 0;
 
   useEffect(() => {
     (async () => {
@@ -64,42 +50,100 @@ const CreatePostsScreen = () => {
           setErrorMsg("Permission to access location was denied");
         } else {
           let locationData = await Location.getCurrentPositionAsync({});
-          const coords = {
-            latitude: locationData.coords.latitude,
-            longitude: locationData.coords.longitude,
-          };
-          setLocation(coords);
-          try {
-            const address = await Location.reverseGeocodeAsync(coords);
-            if (address.length > 0) {
-              const { street, city, region, country } = address[0];
-              setAddress(`${country}, ${region},\n ${city}, ${street}`);
-            }
-          } catch (error) {
-            setErrorMsg("Unable to get address information");
-          }
+          setLocation({ latitude: locationData.coords.latitude, longitude: locationData.coords.longitude });
         }
       }
     })();
   }, [modalVisible]);
 
   useEffect(() => {
-    return () => {
-      setCapturedImage(null);
-    };
-  }, []);
+    return navigation.addListener("focus", () => {
+      onClear();
+    });
+  }, [navigation]);
 
-  const onModalClose = () => {
+  const handleAddPhoto = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      alert("Permission to access media library is required!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 1,
+    });
+
+    if (!result.canceled && user) {
+      const uri = result.assets[0].uri;
+      setCapturedImage(uri);
+    }
+  };
+
+  const handleDeletePhoto = async () => {
+    setCapturedImage(null);
+  };
+
+  const onPostNameChange = (value: string) => {
+    setPostName(value);
+  };
+
+  const onPostLocationChange = (value: string) => {
+    setPostLocation(value);
+  };
+
+  const onPublic = () => {
+    setModalVisible(true);
+  };
+
+  const createImageUrl = async (uri: string | null) => {
+    if (!uri) {
+      return "";
+    }
+    const response = await fetch(uri);
+    const file = await response.blob();
+    const fileName = uri.split("/").pop() || "";
+    const fileType = file.type;
+    const imageFile = new File([file], fileName, { type: fileType });
+    const imageUrl = await uploadImage(user.uid, imageFile, fileName, "postsPhotos");
+    return imageUrl;
+  };
+
+  const onModalClose = async () => {
     setModalVisible(false);
-    setTimeout(() => onClear(), 1000);
-    navigation.navigate("Posts");
+    if (isLocationExist && user?.uid) {
+      const imageUrl: string = await createImageUrl(capturedImage);
+
+      const post = {
+        id: uid(),
+        title: postName,
+        postLocation: postLocation,
+        coordsLocation: location,
+        capturedImage: imageUrl,
+      };
+      await addPost(user.uid, post);
+      setTimeout(() => onClear(), 1000);
+      navigation.navigate("Posts");
+    } else {
+      console.log("Location or userId doesn't exist");
+    }
+  };
+
+  const onClear = () => {
+    setPostName("");
+    setPostLocation("");
+    setLocation({ latitude: 0, longitude: 0 });
+    setErrorMsg("");
+    setCapturedImage(null);
   };
 
   let text;
   if (errorMsg) {
     text = errorMsg;
-  } else if (Object.keys(location).length > 0) {
-    text = `You shared your location:\n ${address}`;
+  } else if (isLocationExist) {
+    text = `You shared your location:\n lat: ${location.latitude}\n long: ${location.longitude}`;
   } else {
     text = "Location not available";
   }
@@ -118,14 +162,21 @@ const CreatePostsScreen = () => {
 
         <ScrollView>
           <View style={styles.scrollContainer}>
-            <CameraField image={capturedImage} setImage={setCapturedImage} />
-
+            {capturedImage ? (
+              <Image source={{ uri: capturedImage }} resizeMode="cover" style={styles.image} />
+            ) : (
+              <CameraField image={capturedImage} setImage={setCapturedImage} />
+            )}
+            <View style={styles.textContainer}>
+              <Text style={styles.text}>Зробіть фото або додайте з галереї</Text>
+              <IconButton onAdd={handleAddPhoto} onDelete={handleDeletePhoto} hasPhoto={capturedImage} />
+            </View>
             <View style={styles.inputsContainer}>
-              <CreatePostInput value={postName} placeholder={"Назва..."} onTextChange={handlePostNameChange} />
+              <CreatePostInput value={postName} placeholder={"Назва..."} onTextChange={onPostNameChange} />
               <CreatePostInput
                 value={postLocation}
                 placeholder={"Місцевість..."}
-                onTextChange={handlePostLocationChange}
+                onTextChange={onPostLocationChange}
                 icon={<MapPin />}
               />
             </View>
@@ -173,29 +224,22 @@ const styles = StyleSheet.create({
   scrollContainer: {
     gap: 32,
   },
-  cameraContainer: {
-    gap: 8,
-  },
-  cameraField: {
-    alignItems: "center",
-    justifyContent: "center",
+  image: {
+    width: Variables.SCREEN_WIDTH - 32,
     height: 240,
-    width: "100%",
-    marginBottom: 8,
     borderRadius: 8,
-    backgroundColor: Colors.inputBorder,
   },
-  cameraWrapper: {
+  textContainer: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: Colors.white,
+    justifyContent: "space-between",
+    marginTop: -16,
   },
-  cameraNotice: {
-    fontSize: 16,
+  text: {
+    flex: 1,
     fontWeight: "400",
+    fontSize: 16,
+    lineHeight: 18,
     color: Colors.placeholderText,
   },
   inputsContainer: {

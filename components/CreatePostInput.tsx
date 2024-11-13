@@ -6,9 +6,17 @@ type CreatePostInputProps = TextInputProps & {
   value: string;
   onTextChange: (value: string) => void;
   icon?: ReactNode;
+  autofocus?: boolean;
 };
 
-const CreatePostInput = ({ value, onTextChange, icon, placeholder }: CreatePostInputProps) => {
+const CreatePostInput = ({
+  value,
+  onTextChange,
+  icon,
+  placeholder,
+  onFocus,
+  autofocus = false,
+}: CreatePostInputProps) => {
   return (
     <View style={styles.container}>
       {icon && icon}
@@ -18,6 +26,8 @@ const CreatePostInput = ({ value, onTextChange, icon, placeholder }: CreatePostI
         onChangeText={onTextChange}
         style={styles.text}
         autoCapitalize="none"
+        onFocus={onFocus}
+        autoFocus={autofocus}
       />
     </View>
   );
